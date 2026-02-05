@@ -219,7 +219,7 @@ annotate service.FreightOrderItems with @(
             },
             {
                 Value: tdDisplayId,
-                Label: 'Transportation Demand'
+                Label: 'Transportation Demand',
             }
         ]}
     }
