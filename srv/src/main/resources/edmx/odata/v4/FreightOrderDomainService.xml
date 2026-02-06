@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+  <edmx:Reference Uri="https://sap.github.io/odata-vocabularies/vocabularies/Common.xml">
+    <edmx:Include Alias="Common" Namespace="com.sap.vocabularies.Common.v1"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Core.V1.xml">
+    <edmx:Include Alias="Core" Namespace="Org.OData.Core.V1"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="https://sap.github.io/odata-vocabularies/vocabularies/UI.xml">
+    <edmx:Include Alias="UI" Namespace="com.sap.vocabularies.UI.v1"/>
+  </edmx:Reference>
+  <edmx:DataServices>
+    <Schema Namespace="FreightOrderDomainService" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <Annotation Term="Core.Links">
+        <Collection>
+          <Record>
+            <PropertyValue Property="rel" String="author"/>
+            <PropertyValue Property="href" String="https://cap.cloud.sap"/>
+          </Record>
+        </Collection>
+      </Annotation>
+      <EntityContainer Name="EntityContainer">
+        <EntitySet Name="FreightOrders" EntityType="FreightOrderDomainService.FreightOrders">
+          <NavigationPropertyBinding Path="status" Target="FreightOrderStatus"/>
+          <NavigationPropertyBinding Path="items" Target="FreightOrderItems"/>
+          <NavigationPropertyBinding Path="stops" Target="FreightOrderStops"/>
+        </EntitySet>
+        <EntitySet Name="FreightOrderItems" EntityType="FreightOrderDomainService.FreightOrderItems">
+          <NavigationPropertyBinding Path="freightOrder" Target="FreightOrders"/>
+          <NavigationPropertyBinding Path="transportationDemandItem" Target="TransportationDemandItem"/>
+        </EntitySet>
+        <EntitySet Name="FreightOrderStops" EntityType="FreightOrderDomainService.FreightOrderStops">
+          <NavigationPropertyBinding Path="freightOrder" Target="FreightOrders"/>
+        </EntitySet>
+        <EntitySet Name="FreightOrderStatus" EntityType="FreightOrderDomainService.FreightOrderStatus">
+          <NavigationPropertyBinding Path="texts" Target="FreightOrderStatus_texts"/>
+          <NavigationPropertyBinding Path="localized" Target="FreightOrderStatus_texts"/>
+        </EntitySet>
+        <EntitySet Name="TransportationDemandItem" EntityType="FreightOrderDomainService.TransportationDemandItem"/>
+        <EntitySet Name="FreightOrderStatus_texts" EntityType="FreightOrderDomainService.FreightOrderStatus_texts"/>
+        <ActionImport Name="assignTD" Action="FreightOrderDomainService.assignTD" EntitySet="FreightOrders"/>
+        <ActionImport Name="unassignTD" Action="FreightOrderDomainService.unassignTD" EntitySet="FreightOrders"/>
+        <ActionImport Name="setStatus" Action="FreightOrderDomainService.setStatus" EntitySet="FreightOrders"/>
+      </EntityContainer>
+      <EntityType Name="FreightOrders">
+        <Key>
+          <PropertyRef Name="ID"/>
+        </Key>
+        <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+        <Property Name="createdAt" Type="Edm.DateTimeOffset" Precision="7"/>
+        <Property Name="createdBy" Type="Edm.String" MaxLength="255"/>
+        <Property Name="modifiedAt" Type="Edm.DateTimeOffset" Precision="7"/>
+        <Property Name="modifiedBy" Type="Edm.String" MaxLength="255"/>
+        <Property Name="displayId" Type="Edm.String" MaxLength="10"/>
+        <NavigationProperty Name="status" Type="FreightOrderDomainService.FreightOrderStatus">
+          <ReferentialConstraint Property="status_code" ReferencedProperty="code"/>
+        </NavigationProperty>
+        <Property Name="status_code" Type="Edm.String" MaxLength="20" DefaultValue="IN_PLANNING"/>
+        <NavigationProperty Name="items" Type="Collection(FreightOrderDomainService.FreightOrderItems)" Partner="freightOrder">
+          <OnDelete Action="Cascade"/>
+        </NavigationProperty>
+        <NavigationProperty Name="stops" Type="Collection(FreightOrderDomainService.FreightOrderStops)" Partner="freightOrder">
+          <OnDelete Action="Cascade"/>
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="FreightOrderItems">
+        <Key>
+          <PropertyRef Name="ID"/>
+        </Key>
+        <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+        <Property Name="displayId" Type="Edm.String" MaxLength="10"/>
+        <NavigationProperty Name="freightOrder" Type="FreightOrderDomainService.FreightOrders" Partner="items">
+          <ReferentialConstraint Property="freightOrder_ID" ReferencedProperty="ID"/>
+        </NavigationProperty>
+        <Property Name="freightOrder_ID" Type="Edm.Guid"/>
+        <Property Name="productName" Type="Edm.String" MaxLength="100"/>
+        <Property Name="quantity" Type="Edm.Int32"/>
+        <NavigationProperty Name="transportationDemandItem" Type="FreightOrderDomainService.TransportationDemandItem">
+          <ReferentialConstraint Property="transportationDemandItem_ID" ReferencedProperty="ID"/>
+        </NavigationProperty>
+        <Property Name="transportationDemandItem_ID" Type="Edm.Guid"/>
+        <Property Name="tdDisplayId" Type="Edm.String"/>
+      </EntityType>
+      <EntityType Name="FreightOrderStops">
+        <Key>
+          <PropertyRef Name="ID"/>
+        </Key>
+        <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+        <NavigationProperty Name="freightOrder" Type="FreightOrderDomainService.FreightOrders" Partner="stops">
+          <ReferentialConstraint Property="freightOrder_ID" ReferencedProperty="ID"/>
+        </NavigationProperty>
+        <Property Name="freightOrder_ID" Type="Edm.Guid"/>
+        <Property Name="location_ID" Type="Edm.Guid"/>
+        <Property Name="sequence" Type="Edm.Int32"/>
+      </EntityType>
+      <EntityType Name="FreightOrderStatus">
+        <Key>
+          <PropertyRef Name="code"/>
+        </Key>
+        <Property Name="name" Type="Edm.String" MaxLength="255"/>
+        <Property Name="descr" Type="Edm.String" MaxLength="1000"/>
+        <Property Name="code" Type="Edm.String" MaxLength="20" Nullable="false"/>
+        <NavigationProperty Name="texts" Type="Collection(FreightOrderDomainService.FreightOrderStatus_texts)">
+          <OnDelete Action="Cascade"/>
+        </NavigationProperty>
+        <NavigationProperty Name="localized" Type="FreightOrderDomainService.FreightOrderStatus_texts">
+          <ReferentialConstraint Property="code" ReferencedProperty="code"/>
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="TransportationDemandItem">
+        <Key>
+          <PropertyRef Name="ID"/>
+        </Key>
+        <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+        <Property Name="displayId" Type="Edm.String" MaxLength="10"/>
+        <Property Name="transportationDemand_ID" Type="Edm.Guid"/>
+        <Property Name="productName" Type="Edm.String" MaxLength="100"/>
+        <Property Name="quantity" Type="Edm.Int32"/>
+      </EntityType>
+      <EntityType Name="FreightOrderStatus_texts">
+        <Key>
+          <PropertyRef Name="locale"/>
+          <PropertyRef Name="code"/>
+        </Key>
+        <Property Name="locale" Type="Edm.String" MaxLength="14" Nullable="false"/>
+        <Property Name="name" Type="Edm.String" MaxLength="255"/>
+        <Property Name="descr" Type="Edm.String" MaxLength="1000"/>
+        <Property Name="code" Type="Edm.String" MaxLength="20" Nullable="false"/>
+      </EntityType>
+      <Action Name="assignTD" IsBound="false">
+        <Parameter Name="ID" Type="Edm.Guid"/>
+        <Parameter Name="tdDisplayId" Type="Edm.String"/>
+        <ReturnType Type="FreightOrderDomainService.FreightOrders"/>
+      </Action>
+      <Action Name="unassignTD" IsBound="false">
+        <Parameter Name="ID" Type="Edm.Guid"/>
+        <Parameter Name="tdId" Type="Edm.Guid"/>
+        <ReturnType Type="FreightOrderDomainService.FreightOrders"/>
+      </Action>
+      <Action Name="setStatus" IsBound="false">
+        <Parameter Name="ID" Type="Edm.Guid"/>
+        <Parameter Name="newStatusCode" Type="Edm.String"/>
+        <ReturnType Type="FreightOrderDomainService.FreightOrders"/>
+      </Action>
+      <Annotations Target="FreightOrderDomainService.FreightOrders/ID">
+        <Annotation Term="Core.ComputedDefaultValue" Bool="true"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrders/createdAt">
+        <Annotation Term="UI.HiddenFilter" Bool="true"/>
+        <Annotation Term="UI.ExcludeFromNavigationContext" Bool="true"/>
+        <Annotation Term="Core.Immutable" Bool="true"/>
+        <Annotation Term="Core.Computed" Bool="true"/>
+        <Annotation Term="Common.Label" String="{i18n>CreatedAt}"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrders/createdBy">
+        <Annotation Term="UI.HiddenFilter" Bool="true"/>
+        <Annotation Term="UI.ExcludeFromNavigationContext" Bool="true"/>
+        <Annotation Term="Core.Immutable" Bool="true"/>
+        <Annotation Term="Core.Computed" Bool="true"/>
+        <Annotation Term="Core.Description" String="{i18n>UserID.Description}"/>
+        <Annotation Term="Common.Label" String="{i18n>CreatedBy}"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrders/modifiedAt">
+        <Annotation Term="UI.HiddenFilter" Bool="true"/>
+        <Annotation Term="UI.ExcludeFromNavigationContext" Bool="true"/>
+        <Annotation Term="Core.Computed" Bool="true"/>
+        <Annotation Term="Common.Label" String="{i18n>ChangedAt}"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrders/modifiedBy">
+        <Annotation Term="UI.HiddenFilter" Bool="true"/>
+        <Annotation Term="UI.ExcludeFromNavigationContext" Bool="true"/>
+        <Annotation Term="Core.Computed" Bool="true"/>
+        <Annotation Term="Core.Description" String="{i18n>UserID.Description}"/>
+        <Annotation Term="Common.Label" String="{i18n>ChangedBy}"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrders/displayId">
+        <Annotation Term="Core.Computed" Bool="true"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrders/status_code">
+        <Annotation Term="Common.ValueList">
+          <Record Type="Common.ValueListType">
+            <PropertyValue Property="Label" String="FreightOrderStatus"/>
+            <PropertyValue Property="CollectionPath" String="FreightOrderStatus"/>
+            <PropertyValue Property="Parameters">
+              <Collection>
+                <Record Type="Common.ValueListParameterInOut">
+                  <PropertyValue Property="LocalDataProperty" PropertyPath="status_code"/>
+                  <PropertyValue Property="ValueListProperty" String="code"/>
+                </Record>
+                <Record Type="Common.ValueListParameterDisplayOnly">
+                  <PropertyValue Property="ValueListProperty" String="name"/>
+                </Record>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrderItems/ID">
+        <Annotation Term="Core.ComputedDefaultValue" Bool="true"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrderItems/displayId">
+        <Annotation Term="Core.Computed" Bool="true"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrderItems/freightOrder_ID">
+        <Annotation Term="Common.FieldControl" EnumMember="Common.FieldControlType/Mandatory"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrderItems/tdDisplayId">
+        <Annotation Term="Core.Computed" Bool="true"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrderStops/ID">
+        <Annotation Term="Core.ComputedDefaultValue" Bool="true"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrderStops/freightOrder_ID">
+        <Annotation Term="Common.FieldControl" EnumMember="Common.FieldControlType/Mandatory"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrderStops/location_ID">
+        <Annotation Term="Common.FieldControl" EnumMember="Common.FieldControlType/Mandatory"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrderStops/sequence">
+        <Annotation Term="Common.FieldControl" EnumMember="Common.FieldControlType/Mandatory"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrderStatus">
+        <Annotation Term="UI.Identification">
+          <Collection>
+            <Record Type="UI.DataField">
+              <PropertyValue Property="Value" Path="name"/>
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrderStatus/name">
+        <Annotation Term="Common.Label" String="{i18n>Name}"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrderStatus/descr">
+        <Annotation Term="Common.Label" String="{i18n>Description}"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.TransportationDemandItem/ID">
+        <Annotation Term="Core.ComputedDefaultValue" Bool="true"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.TransportationDemandItem/transportationDemand_ID">
+        <Annotation Term="Common.FieldControl" EnumMember="Common.FieldControlType/Mandatory"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.TransportationDemandItem/productName">
+        <Annotation Term="Common.FieldControl" EnumMember="Common.FieldControlType/Mandatory"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.TransportationDemandItem/quantity">
+        <Annotation Term="Common.FieldControl" EnumMember="Common.FieldControlType/Mandatory"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrderStatus_texts/locale">
+        <Annotation Term="Common.Label" String="{i18n>LanguageCode}"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrderStatus_texts/name">
+        <Annotation Term="Common.Label" String="{i18n>Name}"/>
+      </Annotations>
+      <Annotations Target="FreightOrderDomainService.FreightOrderStatus_texts/descr">
+        <Annotation Term="Common.Label" String="{i18n>Description}"/>
+      </Annotations>
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>

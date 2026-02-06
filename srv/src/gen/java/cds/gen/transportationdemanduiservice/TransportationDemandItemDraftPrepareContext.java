@@ -1,0 +1,42 @@
+package cds.gen.transportationdemanduiservice;
+
+import com.sap.cds.ql.CdsName;
+import com.sap.cds.ql.cqn.CqnSelect;
+import com.sap.cds.services.EventContext;
+import com.sap.cds.services.EventName;
+import java.lang.Override;
+import java.lang.String;
+import javax.annotation.processing.Generated;
+
+@EventName("draftPrepare")
+@Generated("cds-maven-plugin")
+public interface TransportationDemandItemDraftPrepareContext extends EventContext {
+  String SIDE_EFFECTS_QUALIFIER = "SideEffectsQualifier";
+
+  String CDS_NAME = "draftPrepare";
+
+  @CdsName(SIDE_EFFECTS_QUALIFIER)
+  String getSideEffectsQualifier();
+
+  @CdsName(SIDE_EFFECTS_QUALIFIER)
+  void setSideEffectsQualifier(String sideEffectsQualifier);
+
+  @Override
+  TransportationDemandUIService getService();
+
+  CqnSelect getCqn();
+
+  void setCqn(CqnSelect select);
+
+  static TransportationDemandItemDraftPrepareContext create() {
+    return EventContext.create(TransportationDemandItemDraftPrepareContext.class, "TransportationDemandUIService.TransportationDemandItem");
+  }
+
+  void setResult(TransportationDemandItem result);
+
+  TransportationDemandItem getResult();
+
+  static TransportationDemandItemDraftPrepareContext create(String entityName) {
+    return EventContext.create(TransportationDemandItemDraftPrepareContext.class, entityName);
+  }
+}

@@ -1,0 +1,4 @@
+cds.gen.freightorderdomainservice.FreightOrderDomainService
+cds.gen.transportationdemanddomainservice.TransportationDemandDomainService
+cds.gen.freightorderuiservice.FreightOrderUIService
+cds.gen.transportationdemanduiservice.TransportationDemandUIService

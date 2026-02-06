@@ -1,0 +1,34 @@
+package cds.gen.sap.common;
+
+import com.sap.cds.ql.CdsName;
+import com.sap.cds.ql.ElementRef;
+import com.sap.cds.ql.LinkedStructuredType;
+import com.sap.cds.ql.cqn.CqnPredicate;
+import java.lang.String;
+import java.util.function.Function;
+import javax.annotation.processing.Generated;
+
+/**
+ * Code list for languages
+ *
+ * See https://cap.cloud.sap/docs/cds/common#entity-languages
+ */
+@CdsName("sap.common.Languages")
+@Generated("cds-maven-plugin")
+public interface Languages_ extends LinkedStructuredType<Languages, Languages_> {
+  String CDS_NAME = "sap.common.Languages";
+
+  ElementRef<String> name();
+
+  ElementRef<String> descr();
+
+  ElementRef<String> code();
+
+  LanguagesTexts_ texts();
+
+  LanguagesTexts_ texts(Function<LanguagesTexts_, CqnPredicate> filter);
+
+  LanguagesTexts_ localized();
+
+  LanguagesTexts_ localized(Function<LanguagesTexts_, CqnPredicate> filter);
+}
