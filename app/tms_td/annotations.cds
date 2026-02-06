@@ -1,4 +1,4 @@
-using TransportationDemandService as service from '../../srv/td-service';
+using TransportationDemandUIService as service from '../../srv/td-ui-service';
 
 annotate service.TransportationDemands with @(
     UI.UpdateHidden: isAssigned,
@@ -79,13 +79,13 @@ annotate service.TransportationDemands with @(
         Identification     : [
             {
                 $Type        : 'UI.DataFieldForAction',
-                Action       : 'TransportationDemandService.assign',
+                Action       : 'assign',
                 Label        : 'Assign',
                 ![@UI.Hidden]: isAssigned
             },
             {
                 $Type        : 'UI.DataFieldForAction',
-                Action       : 'TransportationDemandService.unassign',
+                Action       : 'unassign',
                 Label        : 'Unassign',
                 ![@UI.Hidden]: {$edmJson: {$Not: {$Path: 'isAssigned'}}}
             }
@@ -137,12 +137,11 @@ annotate service.TransportationDemands with {
                 {
                     $Type            : 'Common.ValueListParameterDisplayOnly',
                     ValueListProperty: 'name'
-                },
+                }
             ]
         }
     });
 };
-
 
 annotate service.TransportationDemands actions {
     assign(freightOrderId @(
@@ -162,7 +161,7 @@ annotate service.TransportationDemands actions {
                 },
                 {
                     $Type            : 'Common.ValueListParameterDisplayOnly',
-                    ValueListProperty: 'status_code'
+                    ValueListProperty: 'statusName'
                 }
             ]
         }

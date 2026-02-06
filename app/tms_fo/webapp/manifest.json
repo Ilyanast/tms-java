@@ -43,6 +43,19 @@
     }
   },
   "sap.ui5": {
+    "extends": {
+      "extensions": {
+        "sap.ui.viewExtensions": {
+          "sap.fe.templates.ObjectPage.view.Details": {
+            "StopsCustomSection": {
+              "className": "sap.ui.core.mvc.XMLView",
+              "viewName": "tmsfo.ext.view.StopsSection",
+              "type": "XML"
+            }
+          }
+        }
+      }
+    },
     "flexEnabled": true,
     "dependencies": {
       "minUI5Version": "1.144.0",

@@ -1,7 +1,8 @@
-using FreightOrderService as service from '../../srv/fo-service';
+using FreightOrderUIService as service from '../../srv/fo-ui-service';
 
 annotate service.FreightOrders with @(
     UI.UpdateHidden: true,
+    UI.DeleteHidden: isInExecution,
     UI             : {
         HeaderInfo         : {
             TypeName      : 'Freight Order',
@@ -42,12 +43,12 @@ annotate service.FreightOrders with @(
             },
             {
                 $Type : 'UI.ReferenceFacet',
-                Target: 'items/@UI.LineItem',
+                Target: 'items/@com.sap.vocabularies.UI.v1.LineItem',
                 Label : 'Items'
             },
             {
                 $Type : 'UI.ReferenceFacet',
-                Target: 'stops/@UI.LineItem',
+                Target: 'stops/@com.sap.vocabularies.UI.v1.LineItem',
                 Label : 'Stops'
             }
         ],
@@ -74,13 +75,19 @@ annotate service.FreightOrders with @(
         Identification     : [
             {
                 $Type        : 'UI.DataFieldForAction',
-                Action       : 'FreightOrderService.assignTD',
+                Action       : 'assignTD',
                 Label        : 'Assign TD',
                 ![@UI.Hidden]: isInExecution
             },
             {
                 $Type        : 'UI.DataFieldForAction',
-                Action       : 'FreightOrderService.setStatus',
+                Action       : 'unassignTD',
+                Label        : 'Unassign TD',
+                ![@UI.Hidden]: isInExecution
+            },
+            {
+                $Type        : 'UI.DataFieldForAction',
+                Action       : 'setStatus',
                 Label        : 'Set Status',
                 ![@UI.Hidden]: isInExecution
             }
@@ -126,7 +133,7 @@ annotate service.FreightOrders actions {
                 },
                 {
                     $Type            : 'Common.ValueListParameterDisplayOnly',
-                    ValueListProperty: 'fromLocation/name',
+                    ValueListProperty: 'fromLocation/name'
                 },
                 {
                     $Type            : 'Common.ValueListParameterDisplayOnly',
@@ -139,6 +146,22 @@ annotate service.FreightOrders actions {
             ]
         }
     )
+    );
+
+    unassignTD(tdId         @(Common.ValueList: {
+        CollectionPath: 'AssignedTransportationDemands',
+        Parameters    : [
+            {
+                $Type            : 'Common.ValueListParameterInOut',
+                LocalDataProperty: tdId,
+                ValueListProperty: 'ID'
+            },
+            {
+                $Type            : 'Common.ValueListParameterDisplayOnly',
+                ValueListProperty: 'displayId'
+            }
+        ]
+    })
     );
 
     setStatus(newStatusCode @(
@@ -219,7 +242,7 @@ annotate service.FreightOrderItems with @(
             },
             {
                 Value: tdDisplayId,
-                Label: 'Transportation Demand',
+                Label: 'Transportation Demand'
             }
         ]}
     }
@@ -268,38 +291,12 @@ annotate service.FreightOrderStops with @(UI: {
     ]}
 });
 
+annotate service.FreightOrders actions {
+    assignTD @Common.SideEffects: {
+        TargetEntities: ['items']
+    };
 
-// annotate service.Locations with {
-//     ID @UI.Hidden;
-// };
-
-// // --- Unassigned Transportation Demands ---
-// annotate service.UnassignedTransportationDemands with @(UI: {
-//     HeaderInfo: {
-//         TypeName      : 'Transportation Demand',
-//         TypeNamePlural: 'Transportation Demands',
-//         Title         : {Value: displayId}
-//     },
-//     LineItem  : [
-//         {
-//             Value: displayId,
-//             Label: 'ID'
-//         },
-//         {
-//             Value: fromLocation.name,
-//             Label: 'From'
-//         },
-//         {
-//             Value: toLocation.name,
-//             Label: 'To'
-//         },
-//         {
-//             Value: deliveryDateTime,
-//             Label: 'Delivery Date/Time'
-//         }
-//     ]
-// });
-
-// annotate service.UnassignedTransportationDemands with {
-//     ID @UI.Hidden;
-// };
+    unassignTD @Common.SideEffects: {
+        TargetEntities: ['items']
+    };
+};
