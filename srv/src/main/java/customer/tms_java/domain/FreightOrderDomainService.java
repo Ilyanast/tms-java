@@ -18,6 +18,8 @@ import cds.gen.tms.FreightOrder;
 import cds.gen.tms.FreightOrder_;
 import cds.gen.tms.FreightOrderItem;
 import cds.gen.tms.FreightOrderItem_;
+import cds.gen.tms.FreightOrderStop;
+import cds.gen.tms.FreightOrderStop_;
 import cds.gen.tms.TransportationDemand;
 import cds.gen.tms.TransportationDemand_;
 import cds.gen.tms.TransportationDemandItem;
@@ -26,135 +28,212 @@ import cds.gen.tms.TransportationDemandItem_;
 @Service
 public class FreightOrderDomainService {
 
-    private static final String IN_PLANNING = "IN_PLANNING";
-    private static final String READY_FOR_EXECUTION = "READY_FOR_EXECUTION";
-    private static final String IN_EXECUTION = "IN_EXECUTION";
+        private static final String IN_PLANNING = "IN_PLANNING";
+        private static final String READY_FOR_EXECUTION = "READY_FOR_EXECUTION";
+        private static final String IN_EXECUTION = "IN_EXECUTION";
 
-    private static final Set<String> VALID_TRANSITIONS = Set.of(
-            IN_PLANNING + "->" + READY_FOR_EXECUTION,
-            READY_FOR_EXECUTION + "->" + IN_PLANNING,
-            READY_FOR_EXECUTION + "->" + IN_EXECUTION);
+        private static final Set<String> VALID_TRANSITIONS = Set.of(
+                        IN_PLANNING + "->" + READY_FOR_EXECUTION,
+                        READY_FOR_EXECUTION + "->" + IN_PLANNING,
+                        READY_FOR_EXECUTION + "->" + IN_EXECUTION);
 
-    private final PersistenceService db;
+        private final PersistenceService db;
 
-    public FreightOrderDomainService(PersistenceService db) {
-        this.db = db;
-    }
-
-    public void assignTd(String foId, String tdDisplayId) {
-        FreightOrder fo = loadFo(foId);
-
-        requireInPlanning(fo, "assign TD");
-
-        TransportationDemand td = db.run(
-                Select.from(TransportationDemand_.class)
-                        .where(t -> t.displayId().eq(tdDisplayId)))
-                .first(TransportationDemand.class)
-                .orElseThrow(() -> new ServiceException(
-                        ErrorStatuses.NOT_FOUND,
-                        "Transportation Demand not found"));
-
-        if (td.getFreightOrderId() != null) {
-            throw new ServiceException(
-                    ErrorStatuses.CONFLICT,
-                    "Transportation Demand already assigned");
+        public FreightOrderDomainService(PersistenceService db) {
+                this.db = db;
         }
 
-        db.run(
-                Update.entity(TransportationDemand_.class)
-                        .data(TransportationDemand.FREIGHT_ORDER_ID, foId)
-                        .where(t -> t.ID().eq(td.getId())));
+        public void assignTd(String foId, String tdDisplayId) {
+                FreightOrder fo = loadFo(foId);
 
-        List<TransportationDemandItem> tdItems = db.run(
-                Select.from(TransportationDemandItem_.class)
-                        .where(i -> i.transportationDemand_ID().eq(td.getId())))
-                .listOf(TransportationDemandItem.class);
+                requireInPlanning(fo, "assign TD");
 
-        for (TransportationDemandItem tdItem : tdItems) {
-            FreightOrderItem item = FreightOrderItem.create();
+                TransportationDemand td = db.run(
+                                Select.from(TransportationDemand_.class)
+                                                .where(t -> t.displayId().eq(tdDisplayId)))
+                                .first(TransportationDemand.class)
+                                .orElseThrow(() -> new ServiceException(
+                                                ErrorStatuses.NOT_FOUND,
+                                                "Transportation Demand not found"));
 
-            item.setId(UUID.randomUUID().toString());
-            item.setDisplayId(generateDisplayId("FOI"));
-            item.setFreightOrderId(foId);
-            item.setProductName(tdItem.getProductName());
-            item.setQuantity(tdItem.getQuantity());
-            item.setTransportationDemandItemId(tdItem.getId());
+                if (td.getFreightOrderId() != null) {
+                        throw new ServiceException(
+                                        ErrorStatuses.CONFLICT,
+                                        "Transportation Demand already assigned");
+                }
 
-            db.run(Insert.into(FreightOrderItem_.class).entry(item));
+                List<FreightOrderStop> stops = db.run(
+                                Select.from(FreightOrderStop_.class)
+                                                .where(s -> s.freightOrder_ID().eq(foId))
+                                                .orderBy(s -> s.sequence().asc()))
+                                .listOf(FreightOrderStop.class);
+
+                if (stops.isEmpty()) {
+                        addStop(foId, td.getFromLocationId(), 1);
+                        addStop(foId, td.getToLocationId(), 2);
+                } else {
+                        FreightOrderStop firstStop = stops.get(0);
+                        if (!firstStop.getLocationId().equals(td.getFromLocationId())) {
+                                throw new ServiceException(
+                                                ErrorStatuses.CONFLICT,
+                                                "TD's start location must match the origin of the Freight Order");
+                        }
+                        boolean toLocationExists = stops.stream()
+                                        .anyMatch(s -> s.getLocationId().equals(td.getToLocationId()));
+                        if (!toLocationExists) {
+                                addStop(foId, td.getToLocationId(), stops.size() + 1);
+                        }
+                }
+
+                db.run(
+                                Update.entity(TransportationDemand_.class)
+                                                .data(TransportationDemand.FREIGHT_ORDER_ID, foId)
+                                                .where(t -> t.ID().eq(td.getId())));
+
+                List<TransportationDemandItem> tdItems = db.run(
+                                Select.from(TransportationDemandItem_.class)
+                                                .where(i -> i.transportationDemand_ID().eq(td.getId())))
+                                .listOf(TransportationDemandItem.class);
+
+                for (TransportationDemandItem tdItem : tdItems) {
+                        FreightOrderItem item = FreightOrderItem.create();
+
+                        item.setId(UUID.randomUUID().toString());
+                        item.setDisplayId(generateDisplayId("FOI"));
+                        item.setFreightOrderId(foId);
+                        item.setProductName(tdItem.getProductName());
+                        item.setQuantity(tdItem.getQuantity());
+                        item.setTransportationDemandItemId(tdItem.getId());
+
+                        db.run(Insert.into(FreightOrderItem_.class).entry(item));
+                }
         }
-    }
 
-    public void unassignTd(String foId, String tdId) {
-        FreightOrder fo = loadFo(foId);
+        private void addStop(String foId, String locationId, int sequence) {
+                FreightOrderStop stop = FreightOrderStop.create();
 
-        requireInPlanning(fo, "unassign TD");
+                stop.setId(UUID.randomUUID().toString());
+                stop.setFreightOrderId(foId);
+                stop.setLocationId(locationId);
+                stop.setSequence(sequence);
 
-        TransportationDemand td = loadTd(tdId);
-
-        if (!foId.equals(td.getFreightOrderId())) {
-            throw new ServiceException(
-                    ErrorStatuses.BAD_REQUEST,
-                    "TD is not assigned to this Freight Order");
+                db.run(Insert.into(FreightOrderStop_.class).entry(stop));
         }
 
-        List<TransportationDemandItem> tdItems = db.run(
-                Select.from(TransportationDemandItem_.class)
-                        .where(i -> i.transportationDemand_ID().eq(tdId)))
-                .listOf(TransportationDemandItem.class);
+        public void unassignTd(String foId, String tdId) {
+                FreightOrder fo = loadFo(foId);
 
-        tdItems.forEach(item -> db.run(
-                Delete.from(FreightOrderItem_.class)
-                        .where(i -> i.transportationDemandItem_ID().eq(item.getId()))));
+                requireInPlanning(fo, "unassign TD");
 
-        db.run(
-                Update.entity(TransportationDemand_.class)
-                        .data(TransportationDemand.FREIGHT_ORDER_ID, null)
-                        .where(t -> t.ID().eq(tdId)));
-    }
+                TransportationDemand td = loadTd(tdId);
 
-    public void setStatus(String foId, String newStatus) {
-        FreightOrder fo = loadFo(foId);
+                if (!foId.equals(td.getFreightOrderId())) {
+                        throw new ServiceException(
+                                        ErrorStatuses.BAD_REQUEST,
+                                        "TD is not assigned to this Freight Order");
+                }
 
-        String current = fo.getStatusCode();
-        if (current.equals(newStatus)) {
-            return;
+                List<TransportationDemandItem> tdItems = db.run(
+                                Select.from(TransportationDemandItem_.class)
+                                                .where(i -> i.transportationDemand_ID().eq(tdId)))
+                                .listOf(TransportationDemandItem.class);
+
+                tdItems.forEach(item -> db.run(
+                                Delete.from(FreightOrderItem_.class)
+                                                .where(i -> i.transportationDemandItem_ID().eq(item.getId()))));
+
+                db.run(
+                                Update.entity(TransportationDemand_.class)
+                                                .data(TransportationDemand.FREIGHT_ORDER_ID, null)
+                                                .where(t -> t.ID().eq(tdId)));
+
+                String toLocationId = td.getToLocationId();
+                boolean noOtherTdsWithSameToLocation = db.run(
+                                Select.from(TransportationDemand_.class)
+                                                .where(t -> t.freightOrder_ID().eq(foId)
+                                                                .and(t.toLocation_ID().eq(toLocationId))))
+                                .first().isEmpty();
+
+                if (noOtherTdsWithSameToLocation) {
+                        db.run(Delete.from(FreightOrderStop_.class)
+                                        .where(s -> s.freightOrder_ID().eq(foId)
+                                                        .and(s.location_ID().eq(toLocationId))));
+
+                        reorderStops(foId);
+                }
+
+                boolean noRemainingTds = db.run(
+                                Select.from(TransportationDemand_.class)
+                                                .where(t -> t.freightOrder_ID().eq(foId)))
+                                .first().isEmpty();
+
+                if (noRemainingTds) {
+                        db.run(Delete.from(FreightOrderStop_.class)
+                                        .where(s -> s.freightOrder_ID().eq(foId)));
+                }
         }
 
-        if (!VALID_TRANSITIONS.contains(current + "->" + newStatus)) {
-            throw new ServiceException(
-                    ErrorStatuses.CONFLICT,
-                    "Invalid status transition");
+        public void setStatus(String foId, String newStatus) {
+                FreightOrder fo = loadFo(foId);
+
+                String current = fo.getStatusCode();
+                if (current.equals(newStatus)) {
+                        return;
+                }
+
+                if (!VALID_TRANSITIONS.contains(current + "->" + newStatus)) {
+                        throw new ServiceException(
+                                        ErrorStatuses.CONFLICT,
+                                        "Invalid status transition");
+                }
+
+                db.run(
+                                Update.entity(FreightOrder_.class)
+                                                .data(FreightOrder.STATUS_CODE, newStatus)
+                                                .where(f -> f.ID().eq(foId)));
         }
 
-        db.run(
-                Update.entity(FreightOrder_.class)
-                        .data(FreightOrder.STATUS_CODE, newStatus)
-                        .where(f -> f.ID().eq(foId)));
-    }
-
-    private FreightOrder loadFo(String id) {
-        return db.run(
-                Select.from(FreightOrder_.class)
-                        .where(f -> f.ID().eq(id)))
-                .single(FreightOrder.class);
-    }
-
-    private TransportationDemand loadTd(String id) {
-        return db.run(
-                Select.from(TransportationDemand_.class)
-                        .where(t -> t.ID().eq(id)))
-                .single(TransportationDemand.class);
-    }
-
-    private void requireInPlanning(FreightOrder fo, String action) {
-        if (!IN_PLANNING.equals(fo.getStatusCode())) {
-            throw new ServiceException(
-                    ErrorStatuses.CONFLICT,
-                    "Cannot " + action + ": Freight Order must be IN_PLANNING");
+        private FreightOrder loadFo(String id) {
+                return db.run(
+                                Select.from(FreightOrder_.class)
+                                                .where(f -> f.ID().eq(id)))
+                                .single(FreightOrder.class);
         }
-    }
 
-    private String generateDisplayId(String prefix) {
-        return prefix + "-" + UUID.randomUUID().toString().replace("-", "").substring(0, 5).toUpperCase();
-    }
+        private TransportationDemand loadTd(String id) {
+                return db.run(
+                                Select.from(TransportationDemand_.class)
+                                                .where(t -> t.ID().eq(id)))
+                                .single(TransportationDemand.class);
+        }
+
+        private void requireInPlanning(FreightOrder fo, String action) {
+                if (!IN_PLANNING.equals(fo.getStatusCode())) {
+                        throw new ServiceException(
+                                        ErrorStatuses.CONFLICT,
+                                        "Cannot " + action + ": Freight Order must be IN_PLANNING");
+                }
+        }
+
+        private void reorderStops(String foId) {
+                List<FreightOrderStop> stops = db.run(
+                                Select.from(FreightOrderStop_.class)
+                                                .where(s -> s.freightOrder_ID().eq(foId))
+                                                .orderBy(s -> s.sequence().asc()))
+                                .listOf(FreightOrderStop.class);
+
+                for (int i = 0; i < stops.size(); i++) {
+                        FreightOrderStop stop = stops.get(i);
+                        int newSeq = i + 1;
+                        if (stop.getSequence() != newSeq) {
+                                db.run(Update.entity(FreightOrderStop_.class)
+                                                .data(FreightOrderStop.SEQUENCE, newSeq)
+                                                .where(s -> s.ID().eq(stop.getId())));
+                        }
+                }
+        }
+
+        private String generateDisplayId(String prefix) {
+                return prefix + "-" + UUID.randomUUID().toString().replace("-", "").substring(0, 5).toUpperCase();
+        }
 }

@@ -121,6 +121,7 @@
             "settings": {
               "contextPath": "/FreightOrders",
               "variantManagement": "Page",
+              "initialLoad": true,
               "navigation": {
                 "FreightOrders": {
                   "detail": {

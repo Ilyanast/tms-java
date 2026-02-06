@@ -108,6 +108,7 @@
             "settings": {
               "contextPath": "/TransportationDemands",
               "variantManagement": "Page",
+              "initialLoad": true,
               "navigation": {
                 "TransportationDemands": {
                   "detail": {
