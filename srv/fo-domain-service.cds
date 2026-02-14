@@ -7,6 +7,11 @@ service FreightOrderDomainService {
             *,
             items : redirected to FreightOrderItems,
             stops : redirected to FreightOrderStops
+        }
+        actions {
+            action assignTD(tdDisplayId: String)    returns FreightOrders;
+            action unassignTD(tdId: UUID)           returns FreightOrders;
+            action setStatus(newStatusCode: String) returns FreightOrders;
         };
 
     entity FreightOrderItems as projection on tms.FreightOrderItem {
@@ -15,13 +20,4 @@ service FreightOrderDomainService {
     };
 
     entity FreightOrderStops as projection on tms.FreightOrderStop;
-
-    action assignTD(ID: UUID,
-                    tdDisplayId: String)    returns FreightOrders;
-
-    action unassignTD(ID: UUID,
-                      tdId: UUID)           returns FreightOrders;
-
-    action setStatus(ID: UUID,
-                     newStatusCode: String) returns FreightOrders;
 }

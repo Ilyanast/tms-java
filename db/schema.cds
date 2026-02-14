@@ -16,10 +16,10 @@ entity Location : cuid, managed {
 }
 
 entity TransportationDemand : cuid, managed {
-    displayId        : String(10)              @readonly;
-    fromLocation     : Association to Location @mandatory;
-    toLocation       : Association to Location @mandatory;
-    deliveryDateTime : DateTime                @mandatory;
+    displayId        : String(10)               @readonly;
+    fromLocation     : Association to Location  @mandatory  @assert.target;
+    toLocation       : Association to Location  @mandatory  @assert.target;
+    deliveryDateTime : DateTime                 @mandatory;
     freightOrder     : Association to FreightOrder;
     items            : Composition of many TransportationDemandItem
                            on items.transportationDemand = $self;
