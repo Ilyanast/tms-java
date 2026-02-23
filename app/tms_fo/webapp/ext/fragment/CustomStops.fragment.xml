@@ -1,0 +1,32 @@
+<core:FragmentDefinition xmlns:core="sap.ui.core" xmlns:dnd="sap.ui.core.dnd" xmlns:plugins="sap.m.plugins" xmlns="sap.m" height="100%" displayBlock="true">
+	<Table
+		id="table"
+		mode="SingleSelectMaster"
+		beforeOpenContextMenu="onBeforeOpenContextMenu"
+		items="{
+			path: 'stops'
+		}">
+    <columns>
+        <Column>
+            <Text text="Sequence" />
+        </Column>
+        <Column>
+            <Text text="Location" />
+        </Column>
+    </columns>
+		<dragDropConfig>
+			<dnd:DragDropInfo
+				sourceAggregation="items"
+				targetAggregation="items"
+				dropPosition="Between" />
+		</dragDropConfig>
+    <items>
+        <ColumnListItem>
+            <cells>
+                <Text text="{sequence}" />
+                <Text text="{location/name}" />
+            </cells>
+        </ColumnListItem>
+    </items>
+	</Table>
+</core:FragmentDefinition>

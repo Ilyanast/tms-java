@@ -43,20 +43,7 @@
     }
   },
   "sap.ui5": {
-    "extends": {
-      "extensions": {
-        "sap.ui.viewExtensions": {
-          "sap.fe.templates.ObjectPage.view.Details": {
-            "StopsCustomSection": {
-              "className": "sap.ui.core.mvc.XMLView",
-              "viewName": "tmsfo.ext.view.StopsSection",
-              "type": "XML"
-            }
-          }
-        }
-      }
-    },
-    "flexEnabled": true,
+    "flexEnabled": false,
     "dependencies": {
       "minUI5Version": "1.144.0",
       "libs": {
@@ -92,6 +79,15 @@
     },
     "resources": {
       "css": []
+    },
+    "extends": {
+      "extensions": {
+        "sap.ui.controllerExtensions": {
+          "sap.fe.templates.ObjectPage.ObjectPageController": {
+            "controllerName": "tmsfo.ext.controller.FreightOrdersObjectPageExt"
+          }
+        }
+      }
     },
     "routing": {
       "config": {},
@@ -145,12 +141,28 @@
           "name": "sap.fe.templates.ObjectPage",
           "options": {
             "settings": {
+              "earlyRequests": true,
               "editableHeaderContent": false,
               "contextPath": "/FreightOrders",
               "navigation": {
                 "items": {
                   "detail": {
                     "route": "FreightOrderItemsObjectPage"
+                  }
+                }
+              },
+              "content": {
+                "body": {
+                  "sections": {
+                    "flightMap": {
+                      "name": "tmsfo.ext.fragment.CustomStops",
+                      "type": "XMLFragment",
+                      "title": "Stops",
+                      "position": {
+                        "placement": "After",
+                        "anchor": "StopDetails"
+                      }
+                    }
                   }
                 }
               }
