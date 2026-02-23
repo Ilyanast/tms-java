@@ -4,7 +4,10 @@
 		mode="SingleSelectMaster"
 		beforeOpenContextMenu="onBeforeOpenContextMenu"
 		items="{
-			path: 'stops'
+			path: 'stops',
+			parameters: {
+				$orderby: 'sequence asc'
+			}
 		}">
     <columns>
         <Column>
