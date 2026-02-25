@@ -12,8 +12,8 @@ service TransportationDemandUIService @(path: '/api/td') {
             (freightOrder is not null) as isAssigned          : Boolean @readonly
         }
         actions {
-            action assign(freightOrderId: UUID) returns TransportationDemands;
-            action unassign()                   returns TransportationDemands;
+            action assign(freightOrderId: UUID);
+            action unassign();
         };
 
     @readonly

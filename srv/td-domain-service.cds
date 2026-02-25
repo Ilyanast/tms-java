@@ -5,11 +5,11 @@ service TransportationDemandDomainService {
         projection on tms.TransportationDemand {
             *,
             items : redirected to TransportationDemandItems,
+        }
+        actions {
+            action assign(freightOrderId: UUID);
+            action unassign();
         };
 
     entity TransportationDemandItems as projection on tms.TransportationDemandItem;
-
-    action assign(ID: UUID, freightOrderId: UUID) returns TransportationDemands;
-
-    action unassign(ID: UUID)                     returns TransportationDemands;
 }
