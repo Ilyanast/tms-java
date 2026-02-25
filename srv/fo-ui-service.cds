@@ -16,9 +16,9 @@ service FreightOrderUIService @(path: '/api/fo') {
       ) as isInExecution : Boolean @readonly
     }
     actions {
-      action unassignTD(tdId: UUID)           returns FreightOrders;
-      action assignTD(tdDisplayId: String)    returns FreightOrders;
-      action setStatus(newStatusCode: String) returns FreightOrders;
+      action assignTD(tdDisplayId: String);
+      action unassignTD(tdId: UUID);
+      action setStatus(newStatusCode: String);
     };
 
   @readonly

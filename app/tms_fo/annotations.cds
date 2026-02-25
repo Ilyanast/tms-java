@@ -252,11 +252,13 @@ annotate service.FreightOrderItems with {
 annotate service.FreightOrders actions {
   assignTD   @Common.SideEffects: {TargetEntities: [
     'items',
-    'stops'
+    'stops',
   ]};
 
   unassignTD @Common.SideEffects: {TargetEntities: [
     'items',
-    'stops'
+    'stops',
   ]};
+
+  setStatus  @Common.SideEffects: {TargetEntities: ['status']};
 };

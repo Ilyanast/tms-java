@@ -9,9 +9,9 @@ service FreightOrderDomainService {
       stops : redirected to FreightOrderStops
     }
     actions {
-      action assignTD(tdDisplayId: String)    returns FreightOrders;
-      action unassignTD(tdId: UUID)           returns FreightOrders;
-      action setStatus(newStatusCode: String) returns FreightOrders;
+      action assignTD(tdDisplayId: String);
+      action unassignTD(tdId: UUID);
+      action setStatus(newStatusCode: String);
     };
 
   entity FreightOrderItems as
