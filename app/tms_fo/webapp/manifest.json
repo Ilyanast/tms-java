@@ -141,9 +141,8 @@
           "name": "sap.fe.templates.ObjectPage",
           "options": {
             "settings": {
-              "earlyRequests": true,
-              "editableHeaderContent": false,
               "contextPath": "/FreightOrders",
+              "editableHeaderContent": false,
               "navigation": {
                 "items": {
                   "detail": {
@@ -154,7 +153,7 @@
               "content": {
                 "body": {
                   "sections": {
-                    "flightMap": {
+                    "CustomStops": {
                       "name": "tmsfo.ext.fragment.CustomStops",
                       "type": "XMLFragment",
                       "title": "Stops",
