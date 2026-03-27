@@ -1,0 +1,194 @@
+{
+  "_version": "1.81.0",
+  "sap.app": {
+    "id": "tmsfo",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:lrop",
+      "version": "1.20.1",
+      "toolsId": "53f75429-666b-4477-bf8d-b13eb8792f9c"
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "/odata/v4/api/fo/",
+        "type": "OData",
+        "settings": {
+          "annotations": [],
+          "odataVersion": "4.0"
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": false,
+    "dependencies": {
+      "minUI5Version": "1.144.0",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.fe.templates": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "tmsfo.i18n.i18n"
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {
+          "operationMode": "Server",
+          "autoExpandSelect": true,
+          "earlyRequests": true
+        }
+      },
+      "@i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "uri": "i18n/i18n.properties"
+      }
+    },
+    "resources": {
+      "css": []
+    },
+    "extends": {
+      "extensions": {
+        "sap.ui.controllerExtensions": {
+          "sap.fe.templates.ObjectPage.ObjectPageController": {
+            "controllerName": "tmsfo.ext.controller.FreightOrdersObjectPageExt"
+          }
+        }
+      }
+    },
+    "routing": {
+      "config": {},
+      "routes": [
+        {
+          "pattern": ":?query:",
+          "name": "FreightOrdersList",
+          "target": "FreightOrdersList"
+        },
+        {
+          "pattern": "FreightOrders({key}):?query:",
+          "name": "FreightOrdersObjectPage",
+          "target": "FreightOrdersObjectPage"
+        },
+        {
+          "pattern": "FreightOrders({key})/items({key2}):?query:",
+          "name": "FreightOrderItemsObjectPage",
+          "target": "FreightOrderItemsObjectPage"
+        }
+      ],
+      "targets": {
+        "FreightOrdersList": {
+          "type": "Component",
+          "id": "FreightOrdersList",
+          "name": "sap.fe.templates.ListReport",
+          "options": {
+            "settings": {
+              "contextPath": "/FreightOrders",
+              "variantManagement": "Page",
+              "initialLoad": true,
+              "navigation": {
+                "FreightOrders": {
+                  "detail": {
+                    "route": "FreightOrdersObjectPage"
+                  }
+                }
+              },
+              "controlConfiguration": {
+                "@com.sap.vocabularies.UI.v1.LineItem": {
+                  "tableSettings": {
+                    "type": "ResponsiveTable"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "FreightOrdersObjectPage": {
+          "type": "Component",
+          "id": "FreightOrdersObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "contextPath": "/FreightOrders",
+              "editableHeaderContent": false,
+              "navigation": {
+                "items": {
+                  "detail": {
+                    "route": "FreightOrderItemsObjectPage"
+                  }
+                }
+              },
+              "content": {
+                "body": {
+                  "sections": {
+                    "CustomStops": {
+                      "name": "tmsfo.ext.fragment.CustomStops",
+                      "type": "XMLFragment",
+                      "title": "Stops",
+                      "position": {
+                        "placement": "After",
+                        "anchor": "StopDetails"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "FreightOrderItemsObjectPage": {
+          "type": "Component",
+          "id": "FreightOrderItemsObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "editableHeaderContent": false,
+              "contextPath": "/FreightOrders/items"
+            }
+          }
+        }
+      }
+    }
+  },
+  "sap.fiori": {
+    "registrationIds": [],
+    "archeType": "transactional"
+  },
+  "sap.fe": {
+    "app": {
+      "enableLazyLoading": true
+    }
+  }
+}

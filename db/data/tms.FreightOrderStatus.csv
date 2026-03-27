@@ -1,0 +1,4 @@
+code,name,descr
+IN_PLANNING,In Planning,Document is in planning phase
+READY_FOR_EXECUTION,Ready for Execution,Planning is finished
+IN_EXECUTION,In Execution,Final status
